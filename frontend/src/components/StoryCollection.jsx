@@ -2,7 +2,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTimeWarpStore, ERAS } from '../store'
 
 export default function StoryCollection() {
-  const { capsules, removeCapsule } = useTimeWarpStore()
+  const { timeCapsules, removeTimeCapsule } = useTimeWarpStore()
+
+  // 确保 timeCapsules 是数组
+  const capsules = timeCapsules || []
 
   // 获取时代信息
   const getEraInfo = (eraId) => {
@@ -81,7 +84,7 @@ export default function StoryCollection() {
                       whileTap={{ scale: 0.9 }}
                       onClick={(e) => {
                         e.stopPropagation()
-                        removeCapsule(capsule.id)
+                        removeTimeCapsule(capsule.id)
                       }}
                       className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded-lg"
                     >
