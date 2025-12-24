@@ -12,27 +12,149 @@ const AI_ENDPOINTS = {
   deepseek: 'https://api.deepseek.com/v1/chat/completions',
 }
 
+// 使用浏览器 Geolocation API 获取位置
+const getBrowserLocation = () => {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('浏览器不支持地理定位'))
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        })
+      },
+      (error) => {
+        reject(error)
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  })
+}
+
+// 使用 Nominatim (OpenStreetMap) 逆地理编码获取城市名
+const reverseGeocode = async (latitude, longitude) => {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&accept-language=zh-CN`,
+      {
+        headers: {
+          'User-Agent': 'TimeWarp-App/1.0',
+        },
+      }
+    )
+    const data = await response.json()
+    const address = data.address || {}
+    return {
+      city: address.city || address.town || address.county || address.state || '',
+      region: address.state || address.province || '',
+      country: address.country || '中国',
+      countryCode: address.country_code?.toUpperCase() || 'CN',
+    }
+  } catch (error) {
+    console.error('逆地理编码失败:', error)
+    return null
+  }
+}
+
+// 根据城市推荐历史内容
+const getHistoricalRecommendations = (city) => {
+  const cityRecommendations = {
+    '北京': [
+      { era: 'imperial', title: '紫禁城的故事', description: '探索明清两代皇宫的辉煌历史' },
+      { era: 'modern', title: '五四运动', description: '1919年改变中国命运的学生运动' },
+    ],
+    '上海': [
+      { era: 'modern', title: '十里洋场', description: '感受民国时期的繁华与动荡' },
+      { era: 'contemporary', title: '浦东开发', description: '见证中国改革开放的奇迹' },
+    ],
+    '西安': [
+      { era: 'ancient', title: '秦始皇陵', description: '探索千古一帝的地下王国' },
+      { era: 'imperial', title: '大唐盛世', description: '重温长安城的繁华岁月' },
+    ],
+    '杭州': [
+      { era: 'imperial', title: '南宋临安', description: '感受"暖风熏得游人醉"的繁华' },
+      { era: 'imperial', title: '白娘子传说', description: '西湖边流传千年的爱情故事' },
+    ],
+    '南京': [
+      { era: 'imperial', title: '六朝古都', description: '探索金陵的千年沧桑' },
+      { era: 'modern', title: '民国首都', description: '见证中华民国的兴衰' },
+    ],
+    '成都': [
+      { era: 'ancient', title: '古蜀文明', description: '探索三星堆的神秘面纱' },
+      { era: 'imperial', title: '三国蜀汉', description: '诸葛亮与刘备的传奇' },
+    ],
+    '洛阳': [
+      { era: 'ancient', title: '东周王城', description: '周天子的都城' },
+      { era: 'imperial', title: '神都洛阳', description: '武则天的帝国中心' },
+    ],
+    '广州': [
+      { era: 'imperial', title: '海上丝路', description: '千年商都的繁华' },
+      { era: 'modern', title: '辛亥革命', description: '黄花岗起义的壮烈' },
+    ],
+  }
+
+  // 模糊匹配城市名
+  for (const [key, value] of Object.entries(cityRecommendations)) {
+    if (city && city.includes(key)) {
+      return value
+    }
+  }
+
+  return [
+    { era: 'imperial', title: '华夏文明', description: '探索这片土地的历史记忆' },
+  ]
+}
+
 // 获取边缘节点信息和地理位置
 export const getEdgeInfo = async () => {
   try {
-    const response = await api.get('/edge/info')
+    // 首先尝试调用边缘函数
+    const response = await api.get('/edge/info', { timeout: 3000 })
     return response.data
   } catch (error) {
-    console.error('获取边缘信息失败:', error)
-    // 返回模拟数据，确保前端可以正常工作
-    return {
-      success: true,
-      geo: {
-        ip: 'unknown',
-        country: 'CN',
-        countryName: '中国',
-        city: '',
-        region: '',
-      },
-      edgeNode: 'CN-Shanghai',
-      recommendations: [
-        { era: 'imperial', title: '华夏文明', description: '探索这片土地的历史记忆' },
-      ],
+    console.log('边缘函数不可用，使用浏览器定位...')
+
+    // 边缘函数不可用，使用浏览器 Geolocation API
+    try {
+      const coords = await getBrowserLocation()
+      const geoData = await reverseGeocode(coords.latitude, coords.longitude)
+
+      const city = geoData?.city || ''
+
+      return {
+        success: true,
+        geo: {
+          ip: 'browser',
+          country: geoData?.countryCode || 'CN',
+          countryName: geoData?.country || '中国',
+          city: city,
+          region: geoData?.region || '',
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        },
+        edgeNode: 'Browser-Geolocation',
+        recommendations: getHistoricalRecommendations(city),
+      }
+    } catch (geoError) {
+      console.log('浏览器定位失败，使用默认值')
+      // 浏览器定位也失败，返回默认值
+      return {
+        success: true,
+        geo: {
+          ip: 'unknown',
+          country: 'CN',
+          countryName: '中国',
+          city: '',
+          region: '',
+        },
+        edgeNode: 'Default',
+        recommendations: [
+          { era: 'imperial', title: '华夏文明', description: '探索这片土地的历史记忆' },
+        ],
+      }
     }
   }
 }
