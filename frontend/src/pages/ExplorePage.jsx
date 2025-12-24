@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useTimeWarpStore, useAIStore, ERAS } from '../store'
-import { getHistoryStory, getEdgeInfo } from '../utils/api'
+import { useTimeWarpStore, useAIStore, useSettingsStore, ERAS } from '../store'
+import { getHistoryStory, getEdgeInfo, checkApiConfig } from '../utils/api'
 
 // 图标
 const Icons = {
@@ -37,6 +37,12 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   ),
+  Settings: () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  ),
 }
 
 // 时代选择器
@@ -56,13 +62,24 @@ const EraSelector = ({ selectedEra, onSelect }) => (
 )
 
 // 历史故事卡片
-const StoryCard = ({ story, isLoading }) => (
+const StoryCard = ({ story, isLoading, apiError, onGoToSettings }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     className="story-card p-6 md:p-8"
   >
-    {isLoading ? (
+    {apiError ? (
+      <div className="text-center py-12">
+        <div className="text-4xl mb-4">⚙️</div>
+        <p className="text-sepia-600 mb-4">{apiError}</p>
+        <button
+          onClick={onGoToSettings}
+          className="btn-vintage"
+        >
+          前往设置
+        </button>
+      </div>
+    ) : isLoading ? (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="loading-hourglass text-temporal-600 mb-4">⏳</div>
@@ -130,6 +147,10 @@ export default function ExplorePage() {
 
   const [story, setStory] = useState('')
   const [events, setEvents] = useState([])
+  const [apiError, setApiError] = useState('')
+
+  // 检查 API 配置
+  const isApiConfigured = checkApiConfig()
 
   // 解码位置参数
   const decodedLocation = location ? decodeURIComponent(location) : locationName || '北京'
@@ -156,9 +177,16 @@ export default function ExplorePage() {
 
   // 生成历史故事
   const generateStory = async () => {
+    // 检查 API 配置
+    if (!checkApiConfig()) {
+      setApiError('请先在设置中配置 API Key')
+      return
+    }
+
     setGenerating(true)
     setStreamContent('')
     setStory('')
+    setApiError('')
 
     try {
       const era = ERAS.find((e) => e.id === selectedEra)
@@ -171,7 +199,11 @@ export default function ExplorePage() {
       )
     } catch (error) {
       console.error('生成故事失败:', error)
-      setStreamContent('抱歉，生成历史故事时出现错误，请稍后重试。')
+      if (error.message.includes('API Key')) {
+        setApiError(error.message)
+      } else {
+        setStreamContent('抱歉，生成历史故事时出现错误，请稍后重试。')
+      }
     } finally {
       setGenerating(false)
     }
@@ -259,6 +291,13 @@ export default function ExplorePage() {
               >
                 <Icons.Refresh />
               </button>
+              <button
+                onClick={() => navigate('/settings')}
+                className="p-2 rounded-lg hover:bg-sepia-100 text-sepia-600 transition-colors"
+                title="设置"
+              >
+                <Icons.Settings />
+              </button>
             </div>
           </div>
         </div>
@@ -309,7 +348,12 @@ export default function ExplorePage() {
               <Icons.Clock />
               历史故事
             </h2>
-            <StoryCard story={streamContent} isLoading={isGenerating} />
+            <StoryCard
+              story={streamContent}
+              isLoading={isGenerating}
+              apiError={apiError}
+              onGoToSettings={() => navigate('/settings')}
+            />
           </div>
 
           {/* 侧边栏 - 历史事件时间线 */}
