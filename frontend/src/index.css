@@ -1,0 +1,230 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 全局样式 - 复古时光主题 */
+:root {
+  --color-bg: #fdf8f3;
+  --color-text: #3d3d3d;
+  --color-primary: #6370f1;
+  --color-accent: #ca8a04;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 复古纸张纹理背景 */
+.paper-texture {
+  background-color: #fdf8f3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23d4a574' fill-opacity='0.03'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f9efe3;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dca672;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c47340;
+}
+
+/* 历史卡片样式 */
+.history-card {
+  @apply bg-white rounded-2xl shadow-sm border border-sepia-200;
+  @apply transition-all duration-300;
+  @apply hover:shadow-lg hover:border-sepia-300;
+}
+
+/* 时间线样式 */
+.timeline {
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, #6370f1, #ca8a04);
+}
+
+.timeline-item {
+  position: relative;
+  padding: 20px 0;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background: #6370f1;
+  border: 3px solid #fdf8f3;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* 复古按钮 */
+.btn-vintage {
+  @apply px-6 py-3 rounded-xl font-medium transition-all duration-300;
+  @apply bg-gradient-to-r from-temporal-600 to-temporal-700;
+  @apply text-white shadow-lg;
+  @apply hover:from-temporal-700 hover:to-temporal-800;
+  @apply hover:shadow-xl hover:-translate-y-0.5;
+  @apply active:translate-y-0;
+}
+
+.btn-vintage-outline {
+  @apply px-6 py-3 rounded-xl font-medium transition-all duration-300;
+  @apply border-2 border-sepia-400 text-sepia-700;
+  @apply hover:bg-sepia-100 hover:border-sepia-500;
+}
+
+/* 时光粒子效果 */
+.time-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.time-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #6370f1 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float-particle 15s infinite ease-in-out;
+}
+
+@keyframes float-particle {
+  0%, 100% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* 历史图片滤镜 */
+.sepia-filter {
+  filter: sepia(30%) contrast(1.1) brightness(0.95);
+}
+
+/* 打字机效果 */
+.typewriter {
+  overflow: hidden;
+  border-right: 2px solid #6370f1;
+  white-space: nowrap;
+  animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: #6370f1 }
+}
+
+/* 渐入动画 */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 加载动画 */
+.loading-hourglass {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  animation: hourglass 2s infinite;
+}
+
+@keyframes hourglass {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 时间选择器 */
+.era-selector {
+  @apply flex items-center gap-2 p-1 bg-sepia-100 rounded-full;
+}
+
+.era-option {
+  @apply px-4 py-2 rounded-full text-sm font-medium transition-all;
+  @apply text-sepia-600 hover:text-sepia-800;
+}
+
+.era-option.active {
+  @apply bg-white text-temporal-700 shadow-sm;
+}
+
+/* 故事卡片 */
+.story-card {
+  @apply relative overflow-hidden rounded-2xl;
+  @apply bg-gradient-to-br from-sepia-50 to-white;
+  @apply border border-sepia-200;
+}
+
+.story-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, #6370f1, #ca8a04);
+}
