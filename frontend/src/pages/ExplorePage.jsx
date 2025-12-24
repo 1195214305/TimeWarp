@@ -3,6 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTimeWarpStore, useAIStore, useSettingsStore, ERAS } from '../store'
 import { getHistoryStory, getEdgeInfo, checkApiConfig } from '../utils/api'
+import EraDetailCard from '../components/EraDetailCard'
+import AIChatBox from '../components/AIChatBox'
+import RelatedPlaces from '../components/RelatedPlaces'
+import StoryCollection from '../components/StoryCollection'
 
 // 图标
 const Icons = {
@@ -146,7 +150,6 @@ export default function ExplorePage() {
   } = useAIStore()
 
   const [story, setStory] = useState('')
-  const [events, setEvents] = useState([])
   const [apiError, setApiError] = useState('')
 
   // 检查 API 配置
@@ -215,17 +218,6 @@ export default function ExplorePage() {
       generateStory()
     }
   }, [selectedEra, decodedLocation])
-
-  // 模拟历史事件
-  useEffect(() => {
-    const mockEvents = [
-      { year: '公元前221年', title: '秦统一六国', description: '秦始皇统一中国，建立第一个中央集权制国家' },
-      { year: '公元618年', title: '唐朝建立', description: '李渊建立唐朝，开启盛唐时代' },
-      { year: '公元1368年', title: '明朝建立', description: '朱元璋建立明朝，定都南京' },
-      { year: '公元1644年', title: '清朝入关', description: '清军入关，建立清朝统治' },
-    ]
-    setEvents(mockEvents)
-  }, [decodedLocation])
 
   // 保存到时光胶囊
   const handleSave = () => {
@@ -356,30 +348,28 @@ export default function ExplorePage() {
             />
           </div>
 
-          {/* 侧边栏 - 历史事件时间线 */}
-          <div className="lg:col-span-1">
-            <h2 className="text-lg font-semibold text-sepia-900 mb-4 font-serif">
-              重要历史事件
-            </h2>
-            <div className="space-y-4">
-              {events.map((event, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="history-card p-4"
-                >
-                  <div className="text-sm text-temporal-600 font-medium mb-1">
-                    {event.year}
-                  </div>
-                  <h4 className="font-semibold text-sepia-900 mb-1 font-serif">
-                    {event.title}
-                  </h4>
-                  <p className="text-sm text-sepia-600">{event.description}</p>
-                </motion.div>
-              ))}
-            </div>
+          {/* 侧边栏 - 四个功能组件 */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* 时代切换卡片 */}
+            <EraDetailCard
+              currentEra={selectedEra}
+              onEraChange={selectEra}
+            />
+
+            {/* AI 对话框 */}
+            <AIChatBox
+              location={decodedLocation}
+              era={ERAS.find(e => e.id === selectedEra)?.name}
+            />
+
+            {/* 相关地点推荐 */}
+            <RelatedPlaces
+              location={{ city: decodedLocation, name: decodedLocation }}
+              currentEra={selectedEra}
+            />
+
+            {/* 故事收藏夹 */}
+            <StoryCollection />
           </div>
         </div>
       </main>
