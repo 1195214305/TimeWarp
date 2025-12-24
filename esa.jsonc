@@ -1,5 +1,5 @@
-# ESA Pages 配置文件
-# 详见: https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/build-pages
+// ESA Pages 配置文件
+// 详见: https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/build-pages
 {
     "$schema": "https://esa.aliyun.com/schema/esa.jsonc",
     "version": "1.0",
@@ -11,12 +11,8 @@
     },
     "routes": [
         {
-            "src": "/api/edge/(.*)",
-            "dest": "/functions/edge/$1.js"
-        },
-        {
-            "src": "/api/history/(.*)",
-            "dest": "/functions/history/$1.js"
+            "src": "/api/(.*)",
+            "dest": "/functions/$1.js"
         }
     ],
     "functions": {

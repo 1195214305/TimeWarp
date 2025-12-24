@@ -111,8 +111,8 @@ const getHistoricalRecommendations = (city) => {
 // 获取边缘节点信息和地理位置
 export const getEdgeInfo = async () => {
   try {
-    // 首先尝试调用边缘函数
-    const response = await api.get('/edge/info', { timeout: 3000 })
+    // 首先尝试调用边缘函数（扁平化路径）
+    const response = await api.get('/edge-info', { timeout: 3000 })
     return response.data
   } catch (error) {
     console.log('边缘函数不可用，使用浏览器定位...')
